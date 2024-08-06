@@ -101,10 +101,10 @@ where
 /// Handle an incoming collation message from the block builder task.
 /// This builds the collation from the [`CollatorMessage`] and submits it to
 /// the collation-generation subsystem of the relay chain.
-async fn handle_collation_message<Block: BlockT>(
+fn handle_collation_message<Block: BlockT>(
 	message: CollatorMessage<Block>,
 	collator_service: &impl CollatorServiceInterface<Block>,
-	overseer_handle: &mut OverseerHandle,
+	_overseer_handle: &mut OverseerHandle,
 ) -> Option<SubmitCollationParams> {
 	let CollatorMessage {
 		parent_header,

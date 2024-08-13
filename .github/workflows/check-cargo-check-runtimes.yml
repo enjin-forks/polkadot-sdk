@@ -1,0 +1,110 @@
+name: Check Cargo Check Runtimes
+
+on:
+  pull_request:
+    types: [ opened, synchronize, reopened, ready_for_review ]
+
+
+# Jobs in this workflow depend on each other, only for limiting peak amount of spawned workers
+
+jobs:
+  set-image:
+    # GitHub Actions allows using 'env' in a container context.
+    # However, env variables don't work for forks: https://github.com/orgs/community/discussions/44322
+    # This workaround sets the container image for each job using 'set-image' job output.
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      IMAGE: ${{ steps.set_image.outputs.IMAGE }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - id: set_image
+        run: cat .github/env >> $GITHUB_OUTPUT
+  check-runtime-assets:
+    runs-on: ubuntu-latest
+    container:
+      image: docker.io/paritytech/ci-unified:bullseye-1.77.0-2024-04-10-v20240408
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Run cargo check
+        uses: ./.github/actions/cargo-check-runtimes
+        with:
+          root: cumulus/parachains/runtimes/assets
+
+  check-runtime-collectives:
+    runs-on: ubuntu-latest
+    needs: [check-runtime-assets, set-image]
+    container:
+      image: ${{ needs.set-image.outputs.IMAGE }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Run cargo check
+        uses: ./.github/actions/cargo-check-runtimes
+        with:
+          root: cumulus/parachains/runtimes/collectives
+
+  check-runtime-coretime:
+    runs-on: ubuntu-latest
+    needs: [check-runtime-assets, set-image]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Run cargo check
+        uses: ./.github/actions/cargo-check-runtimes
+        with:
+          root: cumulus/parachains/runtimes/coretime
+
+  check-runtime-bridge-hubs:
+    runs-on: ubuntu-latest
+    container:
+      image: ${{ needs.set-image.outputs.IMAGE }}
+    needs: [check-runtime-collectives, set-image]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Run cargo check
+        uses: ./.github/actions/cargo-check-runtimes
+        with:
+          root: cumulus/parachains/runtimes/bridge-hubs
+
+  check-runtime-contracts:
+    runs-on: ubuntu-latest
+    container:
+      image: ${{ needs.set-image.outputs.IMAGE }}
+    needs: [check-runtime-collectives, set-image]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Run cargo check
+        uses: ./.github/actions/cargo-check-runtimes
+        with:
+          root: cumulus/parachains/runtimes/contracts
+
+  check-runtime-starters:
+    runs-on: ubuntu-latest
+    container:
+      image: ${{ needs.set-image.outputs.IMAGE }}
+    needs: [check-runtime-assets, set-image]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Run cargo check
+        uses: ./.github/actions/cargo-check-runtimes
+        with:
+          root: cumulus/parachains/runtimes/starters
+
+  check-runtime-testing:
+    runs-on: ubuntu-latest
+    container:
+      image: ${{ needs.set-image.outputs.IMAGE }}
+    needs: [check-runtime-starters, set-image]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Run cargo check
+        uses: ./.github/actions/cargo-check-runtimes
+        with:
+          root: cumulus/parachains/runtimes/testing

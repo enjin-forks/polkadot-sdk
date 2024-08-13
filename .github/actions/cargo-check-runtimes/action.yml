@@ -1,0 +1,20 @@
+name: 'cargo check runtimes'
+description: 'Runs `cargo check` for every directory in provided root.'
+inputs:
+  root:
+    description: "Root directory. Expected to contain several cargo packages inside."
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Check
+      shell: bash
+      run: |
+        cd ${{ inputs.root }}
+        for directory in $(echo */); do
+          echo "_____Running cargo check for ${directory} ______";
+          cd ${directory};
+          pwd;
+          SKIP_WASM_BUILD=1 forklift cargo check --locked;
+          cd ..;
+        done

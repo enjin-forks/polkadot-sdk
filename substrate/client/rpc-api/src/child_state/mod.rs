@@ -35,7 +35,7 @@ pub trait ChildStateApi<Hash> {
 		child_storage_key: PrefixedStorageKey,
 		prefix: StorageKey,
 		hash: Option<Hash>,
-	) -> Result<Vec<StorageKey>, Error>;
+	) -> Result<Vec<StorageKey>, jsonrpsee::core::Error>;
 
 	/// Returns the keys with prefix from a child storage with pagination support.
 	/// Up to `count` keys will be returned.
@@ -48,7 +48,7 @@ pub trait ChildStateApi<Hash> {
 		count: u32,
 		start_key: Option<StorageKey>,
 		hash: Option<Hash>,
-	) -> Result<Vec<StorageKey>, Error>;
+	) -> Result<Vec<StorageKey>, jsonrpsee::core::Error>;
 
 	/// Returns a child storage entry at a specific block's state.
 	#[method(name = "childstate_getStorage", blocking)]
@@ -57,7 +57,7 @@ pub trait ChildStateApi<Hash> {
 		child_storage_key: PrefixedStorageKey,
 		key: StorageKey,
 		hash: Option<Hash>,
-	) -> Result<Option<StorageData>, Error>;
+	) -> Result<Option<StorageData>, jsonrpsee::core::Error>;
 
 	/// Returns child storage entries for multiple keys at a specific block's state.
 	#[method(name = "childstate_getStorageEntries", blocking)]
@@ -66,7 +66,7 @@ pub trait ChildStateApi<Hash> {
 		child_storage_key: PrefixedStorageKey,
 		keys: Vec<StorageKey>,
 		hash: Option<Hash>,
-	) -> Result<Vec<Option<StorageData>>, Error>;
+	) -> Result<Vec<Option<StorageData>>, jsonrpsee::core::Error>;
 
 	/// Returns the hash of a child storage entry at a block's state.
 	#[method(name = "childstate_getStorageHash", blocking)]
@@ -75,7 +75,7 @@ pub trait ChildStateApi<Hash> {
 		child_storage_key: PrefixedStorageKey,
 		key: StorageKey,
 		hash: Option<Hash>,
-	) -> Result<Option<Hash>, Error>;
+	) -> Result<Option<Hash>, jsonrpsee::core::Error>;
 
 	/// Returns the size of a child storage entry at a block's state.
 	#[method(name = "childstate_getStorageSize", blocking)]
@@ -84,7 +84,7 @@ pub trait ChildStateApi<Hash> {
 		child_storage_key: PrefixedStorageKey,
 		key: StorageKey,
 		hash: Option<Hash>,
-	) -> Result<Option<u64>, Error>;
+	) -> Result<Option<u64>, jsonrpsee::core::Error>;
 
 	/// Returns proof of storage for child key entries at a specific block's state.
 	#[method(name = "state_getChildReadProof", blocking)]
@@ -93,5 +93,5 @@ pub trait ChildStateApi<Hash> {
 		child_storage_key: PrefixedStorageKey,
 		keys: Vec<StorageKey>,
 		hash: Option<Hash>,
-	) -> Result<ReadProof<Hash>, Error>;
+	) -> Result<ReadProof<Hash>, jsonrpsee::core::Error>;
 }

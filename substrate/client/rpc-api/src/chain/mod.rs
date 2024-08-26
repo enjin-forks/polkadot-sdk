@@ -28,11 +28,11 @@ use sp_rpc::{list::ListOrValue, number::NumberOrHex};
 pub trait ChainApi<Number, Hash, Header, SignedBlock> {
 	/// Get header.
 	#[method(name = "chain_getHeader", blocking)]
-	fn header(&self, hash: Option<Hash>) -> Result<Option<Header>, Error>;
+	fn header(&self, hash: Option<Hash>) -> Result<Option<Header>, jsonrpsee::core::Error>;
 
 	/// Get header and body of a block.
 	#[method(name = "chain_getBlock", blocking)]
-	fn block(&self, hash: Option<Hash>) -> Result<Option<SignedBlock>, Error>;
+	fn block(&self, hash: Option<Hash>) -> Result<Option<SignedBlock>, jsonrpsee::core::Error>;
 
 	/// Get hash of the n-th block in the canon chain.
 	///
@@ -41,11 +41,11 @@ pub trait ChainApi<Number, Hash, Header, SignedBlock> {
 	fn block_hash(
 		&self,
 		hash: Option<ListOrValue<NumberOrHex>>,
-	) -> Result<ListOrValue<Option<Hash>>, Error>;
+	) -> Result<ListOrValue<Option<Hash>>, jsonrpsee::core::Error>;
 
 	/// Get hash of the last finalized block in the canon chain.
 	#[method(name = "chain_getFinalizedHead", aliases = ["chain_getFinalisedHead"], blocking)]
-	fn finalized_head(&self) -> Result<Hash, Error>;
+	fn finalized_head(&self) -> Result<Hash, jsonrpsee::core::Error>;
 
 	/// All head subscription.
 	#[subscription(

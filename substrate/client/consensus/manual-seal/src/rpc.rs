@@ -71,7 +71,7 @@ pub trait ManualSealApi<Hash> {
 		create_empty: bool,
 		finalize: bool,
 		parent_hash: Option<Hash>,
-	) -> Result<CreatedBlock<Hash>, Error>;
+	) -> Result<CreatedBlock<Hash>, jsonrpsee::core::Error>;
 
 	/// Instructs the manual-seal authorship task to finalize a block
 	#[method(name = "engine_finalizeBlock")]
@@ -79,7 +79,7 @@ pub trait ManualSealApi<Hash> {
 		&self,
 		hash: Hash,
 		justification: Option<EncodedJustification>,
-	) -> Result<bool, Error>;
+	) -> Result<bool, jsonrpsee::core::Error>;
 }
 
 /// A struct that implements the [`ManualSealApiServer`].

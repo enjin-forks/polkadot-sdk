@@ -31,23 +31,23 @@ pub use error::Error;
 pub trait SystemApi<Hash, Number> {
 	/// Get the node's implementation name. Plain old string.
 	#[method(name = "system_name")]
-	fn system_name(&self) -> Result<String, Error>;
+	fn system_name(&self) -> Result<String, jsonrpsee::core::Error>;
 
 	/// Get the node implementation's version. Should be a semver string.
 	#[method(name = "system_version")]
-	fn system_version(&self) -> Result<String, Error>;
+	fn system_version(&self) -> Result<String, jsonrpsee::core::Error>;
 
 	/// Get the chain's name. Given as a string identifier.
 	#[method(name = "system_chain")]
-	fn system_chain(&self) -> Result<String, Error>;
+	fn system_chain(&self) -> Result<String, jsonrpsee::core::Error>;
 
 	/// Get the chain's type.
 	#[method(name = "system_chainType")]
-	fn system_type(&self) -> Result<sc_chain_spec::ChainType, Error>;
+	fn system_type(&self) -> Result<sc_chain_spec::ChainType, jsonrpsee::core::Error>;
 
 	/// Get a custom set of properties as a JSON object, defined in the chain spec.
 	#[method(name = "system_properties")]
-	fn system_properties(&self) -> Result<sc_chain_spec::Properties, Error>;
+	fn system_properties(&self) -> Result<sc_chain_spec::Properties, jsonrpsee::core::Error>;
 
 	/// Return health status of the node.
 	///
@@ -55,22 +55,22 @@ pub trait SystemApi<Hash, Number> {
 	/// - connected to some peers (unless running in dev mode)
 	/// - not performing a major sync
 	#[method(name = "system_health")]
-	async fn system_health(&self) -> Result<Health, Error>;
+	async fn system_health(&self) -> Result<Health, jsonrpsee::core::Error>;
 
 	/// Returns the base58-encoded PeerId of the node.
 	#[method(name = "system_localPeerId")]
-	async fn system_local_peer_id(&self) -> Result<String, Error>;
+	async fn system_local_peer_id(&self) -> Result<String, jsonrpsee::core::Error>;
 
 	/// Returns the multi-addresses that the local node is listening on
 	///
 	/// The addresses include a trailing `/p2p/` with the local PeerId, and are thus suitable to
 	/// be passed to `addReservedPeer` or as a bootnode address for example.
 	#[method(name = "system_localListenAddresses")]
-	async fn system_local_listen_addresses(&self) -> Result<Vec<String>, Error>;
+	async fn system_local_listen_addresses(&self) -> Result<Vec<String>, jsonrpsee::core::Error>;
 
 	/// Returns currently connected peers
 	#[method(name = "system_peers")]
-	async fn system_peers(&self) -> Result<Vec<PeerInfo<Hash, Number>>, Error>;
+	async fn system_peers(&self) -> Result<Vec<PeerInfo<Hash, Number>>, jsonrpsee::core::Error>;
 
 	/// Returns current state of the network.
 	///
@@ -79,7 +79,7 @@ pub trait SystemApi<Hash, Number> {
 	// TODO: the future of this call is uncertain: https://github.com/paritytech/substrate/issues/1890
 	// https://github.com/paritytech/substrate/issues/5541
 	#[method(name = "system_unstable_networkState")]
-	async fn system_network_state(&self) -> Result<JsonValue, Error>;
+	async fn system_network_state(&self) -> Result<JsonValue, jsonrpsee::core::Error>;
 
 	/// Adds a reserved peer. Returns the empty string or an error. The string
 	/// parameter should encode a `p2p` multiaddr.
@@ -87,25 +87,25 @@ pub trait SystemApi<Hash, Number> {
 	/// `/ip4/198.51.100.19/tcp/30333/p2p/QmSk5HQbn6LhUwDiNMseVUjuRYhEtYj4aUZ6WfWoGURpdV`
 	/// is an example of a valid, passing multiaddr with PeerId attached.
 	#[method(name = "system_addReservedPeer")]
-	async fn system_add_reserved_peer(&self, peer: String) -> Result<(), Error>;
+	async fn system_add_reserved_peer(&self, peer: String) -> Result<(), jsonrpsee::core::Error>;
 
 	/// Remove a reserved peer. Returns the empty string or an error. The string
 	/// should encode only the PeerId e.g. `QmSk5HQbn6LhUwDiNMseVUjuRYhEtYj4aUZ6WfWoGURpdV`.
 	#[method(name = "system_removeReservedPeer")]
-	async fn system_remove_reserved_peer(&self, peer_id: String) -> Result<(), Error>;
+	async fn system_remove_reserved_peer(&self, peer_id: String) -> Result<(), jsonrpsee::core::Error>;
 
 	/// Returns the list of reserved peers
 	#[method(name = "system_reservedPeers")]
-	async fn system_reserved_peers(&self) -> Result<Vec<String>, Error>;
+	async fn system_reserved_peers(&self) -> Result<Vec<String>, jsonrpsee::core::Error>;
 
 	/// Returns the roles the node is running as.
 	#[method(name = "system_nodeRoles")]
-	async fn system_node_roles(&self) -> Result<Vec<NodeRole>, Error>;
+	async fn system_node_roles(&self) -> Result<Vec<NodeRole>, jsonrpsee::core::Error>;
 
 	/// Returns the state of the syncing of the node: starting block, current best block, highest
 	/// known block.
 	#[method(name = "system_syncState")]
-	async fn system_sync_state(&self) -> Result<SyncState<Number>, Error>;
+	async fn system_sync_state(&self) -> Result<SyncState<Number>, jsonrpsee::core::Error>;
 
 	/// Adds the supplied directives to the current log filter
 	///
@@ -113,9 +113,9 @@ pub trait SystemApi<Hash, Number> {
 	///
 	/// `sync=debug,state=trace`
 	#[method(name = "system_addLogFilter")]
-	fn system_add_log_filter(&self, directives: String) -> Result<(), Error>;
+	fn system_add_log_filter(&self, directives: String) -> Result<(), jsonrpsee::core::Error>;
 
 	/// Resets the log filter to Substrate defaults
 	#[method(name = "system_resetLogFilter")]
-	fn system_reset_log_filter(&self) -> Result<(), Error>;
+	fn system_reset_log_filter(&self) -> Result<(), jsonrpsee::core::Error>;
 }

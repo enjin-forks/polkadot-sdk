@@ -60,5 +60,5 @@ pub trait DevApi<Hash> {
 	/// at the queried node. If either the specified block or the parent is pruned,
 	/// this function will return `None`.
 	#[method(name = "dev_getBlockStats")]
-	fn block_stats(&self, block_hash: Hash) -> Result<Option<BlockStats>, Error>;
+	fn block_stats(&self, block_hash: Hash) -> Result<Option<BlockStats>, jsonrpsee::core::Error>;
 }

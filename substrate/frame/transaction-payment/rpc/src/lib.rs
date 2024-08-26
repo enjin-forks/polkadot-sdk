@@ -72,7 +72,7 @@ pub enum Error {
 	RuntimeError,
 }
 
-impl From<Error> for i32 {
+impl From<jsonrpsee::core::Error> for i32 {
 	fn from(e: Error) -> i32 {
 		match e {
 			Error::RuntimeError => 1,

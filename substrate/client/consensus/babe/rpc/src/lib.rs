@@ -48,7 +48,7 @@ pub trait BabeApi {
 	/// Returns data about which slots (primary or secondary) can be claimed in the current epoch
 	/// with the keys in the keystore.
 	#[method(name = "babe_epochAuthorship")]
-	async fn epoch_authorship(&self) -> Result<HashMap<AuthorityId, EpochAuthorship>, Error>;
+	async fn epoch_authorship(&self) -> Result<HashMap<AuthorityId, EpochAuthorship>, jsonrpsee::core::Error>;
 }
 
 /// Provides RPC methods for interacting with Babe.

@@ -78,7 +78,7 @@ pub trait ChainHeadApi<Hash> {
 		&self,
 		follow_subscription: String,
 		hash: Hash,
-	) -> Result<Option<String>, Error>;
+	) -> Result<Option<String>, jsonrpsee::core::Error>;
 
 	/// Returns storage entries at a specific block's state.
 	///
@@ -123,7 +123,7 @@ pub trait ChainHeadApi<Hash> {
 		&self,
 		follow_subscription: String,
 		hash_or_hashes: ListOrValue<Hash>,
-	) -> Result<(), Error>;
+	) -> Result<(), jsonrpsee::core::Error>;
 
 	/// Resumes a storage fetch started with `chainHead_storage` after it has generated an
 	/// `operationWaitingForContinue` event.
@@ -136,7 +136,7 @@ pub trait ChainHeadApi<Hash> {
 		&self,
 		follow_subscription: String,
 		operation_id: String,
-	) -> Result<(), Error>;
+	) -> Result<(), jsonrpsee::core::Error>;
 
 	/// Stops an operation started with chainHead_unstable_body, chainHead_unstable_call, or
 	/// chainHead_unstable_storage. If the operation was still in progress, this interrupts it. If
@@ -150,5 +150,5 @@ pub trait ChainHeadApi<Hash> {
 		&self,
 		follow_subscription: String,
 		operation_id: String,
-	) -> Result<(), Error>;
+	) -> Result<(), jsonrpsee::core::Error>;
 }

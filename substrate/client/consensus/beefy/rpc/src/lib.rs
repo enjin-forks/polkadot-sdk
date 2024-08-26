@@ -94,7 +94,7 @@ pub trait BeefyApi<Notification, Hash> {
 	/// in the network or if the client is still initializing or syncing with the network.
 	/// In such case an error would be returned.
 	#[method(name = "beefy_getFinalizedHead")]
-	async fn latest_finalized(&self) -> Result<Hash, Error>;
+	async fn latest_finalized(&self) -> Result<Hash, jsonrpsee::core::Error>;
 }
 
 /// Implements the BeefyApi RPC trait for interacting with BEEFY.

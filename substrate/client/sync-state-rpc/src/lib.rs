@@ -94,7 +94,7 @@ impl<Block: BlockT> From<Error<Block>> for ErrorObjectOwned {
 fn serialize_encoded<S: serde::Serializer, T: codec::Encode>(
 	val: &T,
 	s: S,
-) -> Result<S::Ok, S::Error> {
+) -> Result<S::Ok, S::jsonrpsee::core::Error> {
 	let encoded = StorageData(val.encode());
 	serde::Serialize::serialize(&encoded, s)
 }

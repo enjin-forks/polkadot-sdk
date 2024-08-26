@@ -29,9 +29,9 @@ use sp_core::{offchain::StorageKind, Bytes};
 pub trait OffchainApi {
 	/// Set offchain local storage under given key and prefix.
 	#[method(name = "offchain_localStorageSet")]
-	fn set_local_storage(&self, kind: StorageKind, key: Bytes, value: Bytes) -> Result<(), Error>;
+	fn set_local_storage(&self, kind: StorageKind, key: Bytes, value: Bytes) -> Result<(), jsonrpsee::core::Error>;
 
 	/// Get offchain local storage under given key and prefix.
 	#[method(name = "offchain_localStorageGet")]
-	fn get_local_storage(&self, kind: StorageKind, key: Bytes) -> Result<Option<Bytes>, Error>;
+	fn get_local_storage(&self, kind: StorageKind, key: Bytes) -> Result<Option<Bytes>, jsonrpsee::core::Error>;
 }

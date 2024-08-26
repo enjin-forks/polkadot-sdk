@@ -31,15 +31,15 @@ use sp_core::Bytes;
 pub trait AuthorApi<Hash, BlockHash> {
 	/// Submit hex-encoded extrinsic for inclusion in block.
 	#[method(name = "author_submitExtrinsic")]
-	async fn submit_extrinsic(&self, extrinsic: Bytes) -> Result<Hash, Error>;
+	async fn submit_extrinsic(&self, extrinsic: Bytes) -> Result<Hash, jsonrpsee::core::Error>;
 
 	/// Insert a key into the keystore.
 	#[method(name = "author_insertKey")]
-	fn insert_key(&self, key_type: String, suri: String, public: Bytes) -> Result<(), Error>;
+	fn insert_key(&self, key_type: String, suri: String, public: Bytes) -> Result<(), jsonrpsee::core::Error>;
 
 	/// Generate new session keys and returns the corresponding public keys.
 	#[method(name = "author_rotateKeys")]
-	fn rotate_keys(&self) -> Result<Bytes, Error>;
+	fn rotate_keys(&self) -> Result<Bytes, jsonrpsee::core::Error>;
 
 	/// Checks if the keystore has private keys for the given session public keys.
 	///
@@ -47,24 +47,24 @@ pub trait AuthorApi<Hash, BlockHash> {
 	///
 	/// Returns `true` iff all private keys could be found.
 	#[method(name = "author_hasSessionKeys")]
-	fn has_session_keys(&self, session_keys: Bytes) -> Result<bool, Error>;
+	fn has_session_keys(&self, session_keys: Bytes) -> Result<bool, jsonrpsee::core::Error>;
 
 	/// Checks if the keystore has private keys for the given public key and key type.
 	///
 	/// Returns `true` if a private key could be found.
 	#[method(name = "author_hasKey")]
-	fn has_key(&self, public_key: Bytes, key_type: String) -> Result<bool, Error>;
+	fn has_key(&self, public_key: Bytes, key_type: String) -> Result<bool, jsonrpsee::core::Error>;
 
 	/// Returns all pending extrinsics, potentially grouped by sender.
 	#[method(name = "author_pendingExtrinsics")]
-	fn pending_extrinsics(&self) -> Result<Vec<Bytes>, Error>;
+	fn pending_extrinsics(&self) -> Result<Vec<Bytes>, jsonrpsee::core::Error>;
 
 	/// Remove given extrinsic from the pool and temporarily ban it to prevent reimporting.
 	#[method(name = "author_removeExtrinsic")]
 	fn remove_extrinsic(
 		&self,
 		bytes_or_hash: Vec<hash::ExtrinsicOrHash<Hash>>,
-	) -> Result<Vec<Hash>, Error>;
+	) -> Result<Vec<Hash>, jsonrpsee::core::Error>;
 
 	/// Submit an extrinsic to watch.
 	///

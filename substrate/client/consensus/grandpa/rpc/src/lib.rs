@@ -47,7 +47,7 @@ pub trait GrandpaApi<Notification, Hash, Number> {
 	/// Returns the state of the current best round state as well as the
 	/// ongoing background rounds.
 	#[method(name = "grandpa_roundState")]
-	async fn round_state(&self) -> Result<ReportedRoundStates, Error>;
+	async fn round_state(&self) -> Result<ReportedRoundStates, jsonrpsee::core::Error>;
 
 	/// Returns the block most recently finalized by Grandpa, alongside
 	/// side its justification.
@@ -61,7 +61,7 @@ pub trait GrandpaApi<Notification, Hash, Number> {
 	/// Prove finality for the given block number by returning the Justification for the last block
 	/// in the set and all the intermediary headers to link them together.
 	#[method(name = "grandpa_proveFinality")]
-	async fn prove_finality(&self, block: Number) -> Result<Option<EncodedFinalityProof>, Error>;
+	async fn prove_finality(&self, block: Number) -> Result<Option<EncodedFinalityProof>, jsonrpsee::core::Error>;
 }
 
 /// Provides RPC methods for interacting with GRANDPA.

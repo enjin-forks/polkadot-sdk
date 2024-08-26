@@ -23,14 +23,15 @@ mod tests;
 
 use std::sync::Arc;
 
-use crate::{
-	utils::{pipe_from_stream, spawn_subscription_task},
-	SubscriptionTaskExecutor,
-};
+use crate::SubscriptionTaskExecutor;
 
 use codec::{Decode, Encode};
-use futures::TryFutureExt;
-use jsonrpsee::{core::async_trait, types::ErrorObject, PendingSubscriptionSink};
+use futures::{FutureExt, TryFutureExt};
+use jsonrpsee::{
+	core::{async_trait, Error as JsonRpseeError, RpcResult},
+	types::SubscriptionResult,
+	SubscriptionSink,
+};
 use sc_rpc_api::DenyUnsafe;
 use sc_transaction_pool_api::{
 	error::IntoPoolError, BlockHash, InPoolTransaction, TransactionFor, TransactionPool,
@@ -40,7 +41,7 @@ use sp_api::{ApiExt, ProvideRuntimeApi};
 use sp_blockchain::HeaderBackend;
 use sp_core::Bytes;
 use sp_keystore::{KeystoreExt, KeystorePtr};
-use sp_runtime::traits::Block as BlockT;
+use sp_runtime::{generic, traits::Block as BlockT};
 use sp_session::SessionKeys;
 
 use self::error::{Error, Result};
@@ -90,21 +91,24 @@ where
 	P::Hash: Unpin,
 	<P::Block as BlockT>::Hash: Unpin,
 {
-	async fn submit_extrinsic(&self, ext: Bytes) -> Result<TxHash<P>> {
+	async fn submit_extrinsic(&self, ext: Bytes) -> RpcResult<TxHash<P>> {
 		let xt = match Decode::decode(&mut &ext[..]) {
 			Ok(xt) => xt,
 			Err(err) => return Err(Error::Client(Box::new(err)).into()),
 		};
 		let best_block_hash = self.client.info().best_hash;
-		self.pool.submit_one(best_block_hash, TX_SOURCE, xt).await.map_err(|e| {
-			e.into_pool_error()
-				.map(|e| Error::Pool(e))
-				.unwrap_or_else(|e| Error::Verification(Box::new(e)))
-				.into()
-		})
+		self.pool
+			.submit_one(&generic::BlockId::hash(best_block_hash), TX_SOURCE, xt)
+			.await
+			.map_err(|e| {
+				e.into_pool_error()
+					.map(|e| Error::Pool(e))
+					.unwrap_or_else(|e| Error::Verification(Box::new(e)))
+					.into()
+			})
 	}
 
-	fn insert_key(&self, key_type: String, suri: String, public: Bytes) -> Result<()> {
+	fn insert_key(&self, key_type: String, suri: String, public: Bytes) -> RpcResult<()> {
 		self.deny_unsafe.check_if_safe()?;
 
 		let key_type = key_type.as_str().try_into().map_err(|_| Error::BadKeyType)?;
@@ -114,7 +118,7 @@ where
 		Ok(())
 	}
 
-	fn rotate_keys(&self) -> Result<Bytes> {
+	fn rotate_keys(&self) -> RpcResult<Bytes> {
 		self.deny_unsafe.check_if_safe()?;
 
 		let best_block_hash = self.client.info().best_hash;
@@ -128,7 +132,7 @@ where
 			.map_err(|api_err| Error::Client(Box::new(api_err)).into())
 	}
 
-	fn has_session_keys(&self, session_keys: Bytes) -> Result<bool> {
+	fn has_session_keys(&self, session_keys: Bytes) -> RpcResult<bool> {
 		self.deny_unsafe.check_if_safe()?;
 
 		let best_block_hash = self.client.info().best_hash;
@@ -142,21 +146,21 @@ where
 		Ok(self.keystore.has_keys(&keys))
 	}
 
-	fn has_key(&self, public_key: Bytes, key_type: String) -> Result<bool> {
+	fn has_key(&self, public_key: Bytes, key_type: String) -> RpcResult<bool> {
 		self.deny_unsafe.check_if_safe()?;
 
 		let key_type = key_type.as_str().try_into().map_err(|_| Error::BadKeyType)?;
 		Ok(self.keystore.has_keys(&[(public_key.to_vec(), key_type)]))
 	}
 
-	fn pending_extrinsics(&self) -> Result<Vec<Bytes>> {
+	fn pending_extrinsics(&self) -> RpcResult<Vec<Bytes>> {
 		Ok(self.pool.ready().map(|tx| tx.data().encode().into()).collect())
 	}
 
 	fn remove_extrinsic(
 		&self,
 		bytes_or_hash: Vec<hash::ExtrinsicOrHash<TxHash<P>>>,
-	) -> Result<Vec<TxHash<P>>> {
+	) -> RpcResult<Vec<TxHash<P>>> {
 		self.deny_unsafe.check_if_safe()?;
 		let hashes = bytes_or_hash
 			.into_iter()
@@ -177,34 +181,38 @@ where
 			.collect())
 	}
 
-	fn watch_extrinsic(&self, pending: PendingSubscriptionSink, xt: Bytes) {
+	fn watch_extrinsic(&self, mut sink: SubscriptionSink, xt: Bytes) -> SubscriptionResult {
 		let best_block_hash = self.client.info().best_hash;
 		let dxt = match TransactionFor::<P>::decode(&mut &xt[..]).map_err(|e| Error::from(e)) {
 			Ok(dxt) => dxt,
 			Err(e) => {
-				spawn_subscription_task(&self.executor, pending.reject(e));
-				return
+				let _ = sink.reject(JsonRpseeError::from(e));
+				return Ok(())
 			},
 		};
 
-		let submit = self.pool.submit_and_watch(best_block_hash, TX_SOURCE, dxt).map_err(|e| {
-			e.into_pool_error()
-				.map(error::Error::from)
-				.unwrap_or_else(|e| error::Error::Verification(Box::new(e)))
-		});
+		let submit = self
+			.pool
+			.submit_and_watch(&generic::BlockId::hash(best_block_hash), TX_SOURCE, dxt)
+			.map_err(|e| {
+				e.into_pool_error()
+					.map(error::Error::from)
+					.unwrap_or_else(|e| error::Error::Verification(Box::new(e)))
+			});
 
 		let fut = async move {
 			let stream = match submit.await {
 				Ok(stream) => stream,
 				Err(err) => {
-					let _ = pending.reject(ErrorObject::from(err)).await;
+					let _ = sink.reject(JsonRpseeError::from(err));
 					return
 				},
 			};
 
-			pipe_from_stream(pending, stream).await;
+			sink.pipe_from_stream(stream).await;
 		};
 
-		spawn_subscription_task(&self.executor, fut);
+		self.executor.spawn("substrate-rpc-subscription", Some("rpc"), fut.boxed());
+		Ok(())
 	}
 }

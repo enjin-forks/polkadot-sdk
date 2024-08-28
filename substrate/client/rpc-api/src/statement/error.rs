@@ -19,6 +19,8 @@
 //! Statement RPC errors.
 
 use jsonrpsee::types::error::{ErrorObject, ErrorObjectOwned};
+use jsonrpsee::core::Error as JsonRpseeError;
+use jsonrpsee::types::error::{CallError};
 
 /// Statement RPC Result type.
 pub type Result<T> = std::result::Result<T, Error>;
@@ -45,6 +47,20 @@ impl From<Error> for ErrorObjectOwned {
 				format!("Statement store error: {message}"),
 				None::<()>,
 			),
+			Error::UnsafeRpcCalled(e) => e.into(),
+		}
+	}
+}
+
+impl From<Error> for JsonRpseeError {
+	fn from(e: Error) -> Self {
+		match e {
+			Error::StatementStore(message) => CallError::Custom(ErrorObject::owned(
+				BASE_ERROR + 1,
+				format!("Statement store error: {message}"),
+				None::<()>,
+			))
+			.into(),
 			Error::UnsafeRpcCalled(e) => e.into(),
 		}
 	}

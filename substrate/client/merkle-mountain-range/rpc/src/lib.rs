@@ -26,7 +26,7 @@ use codec::{Codec, Decode, Encode};
 use jsonrpsee::{
 	core::{async_trait, RpcResult},
 	proc_macros::rpc,
-	types::{error::ErrorObject, ErrorObjectOwned},
+	types::error::{CallError, ErrorObject},
 };
 use serde::{Deserialize, Serialize};
 
@@ -36,8 +36,8 @@ use sp_core::{
 	offchain::{storage::OffchainDb, OffchainDbExt, OffchainStorage},
 	Bytes,
 };
-use sp_mmr_primitives::{Error as MmrError, Proof};
 use sp_runtime::traits::{Block as BlockT, NumberFor};
+use sp_mmr_primitives::{Error as MmrError, Proof};
 
 pub use sp_mmr_primitives::MmrApi as MmrRuntimeApi;
 
@@ -189,9 +189,11 @@ where
 	fn verify_proof(&self, proof: LeavesProof<<Block as BlockT>::Hash>) -> RpcResult<bool> {
 		let mut api = self.client.runtime_api();
 
-		let leaves = Decode::decode(&mut &proof.leaves.0[..]).map_err(invalid_params)?;
+		let leaves = Decode::decode(&mut &proof.leaves.0[..])
+			.map_err(|e| CallError::InvalidParams(anyhow::Error::new(e)))?;
 
-		let decoded_proof = Decode::decode(&mut &proof.proof.0[..]).map_err(invalid_params)?;
+		let decoded_proof = Decode::decode(&mut &proof.proof.0[..])
+			.map_err(|e| CallError::InvalidParams(anyhow::Error::new(e)))?;
 
 		api.register_extension(OffchainDbExt::new(self.offchain_db.clone()));
 
@@ -209,9 +211,11 @@ where
 	) -> RpcResult<bool> {
 		let api = self.client.runtime_api();
 
-		let leaves = Decode::decode(&mut &proof.leaves.0[..]).map_err(invalid_params)?;
+		let leaves = Decode::decode(&mut &proof.leaves.0[..])
+			.map_err(|e| CallError::InvalidParams(anyhow::Error::new(e)))?;
 
-		let decoded_proof = Decode::decode(&mut &proof.proof.0[..]).map_err(invalid_params)?;
+		let decoded_proof = Decode::decode(&mut &proof.proof.0[..])
+			.map_err(|e| CallError::InvalidParams(anyhow::Error::new(e)))?;
 
 		api.verify_proof_stateless(proof.block_hash, mmr_root, leaves, decoded_proof)
 			.map_err(runtime_error_into_rpc_error)?
@@ -222,7 +226,7 @@ where
 }
 
 /// Converts an mmr-specific error into a [`CallError`].
-fn mmr_error_into_rpc_error(err: MmrError) -> ErrorObjectOwned {
+fn mmr_error_into_rpc_error(err: MmrError) -> CallError {
 	let error_code = MMR_ERROR +
 		match err {
 			MmrError::LeafNotFound => 1,
@@ -233,20 +237,16 @@ fn mmr_error_into_rpc_error(err: MmrError) -> ErrorObjectOwned {
 			_ => 0,
 		};
 
-	ErrorObject::owned(error_code, err.to_string(), Some(format!("{:?}", err)))
+	CallError::Custom(ErrorObject::owned(error_code, err.to_string(), Some(format!("{:?}", err))))
 }
 
 /// Converts a runtime trap into a [`CallError`].
-fn runtime_error_into_rpc_error(err: impl std::fmt::Debug) -> ErrorObjectOwned {
-	ErrorObject::owned(RUNTIME_ERROR, "Runtime trapped", Some(format!("{:?}", err)))
-}
-
-fn invalid_params(e: impl std::error::Error) -> ErrorObjectOwned {
-	ErrorObject::owned(
-		jsonrpsee::types::error::ErrorCode::InvalidParams.code(),
-		e.to_string(),
-		None::<()>,
-	)
+fn runtime_error_into_rpc_error(err: impl std::fmt::Debug) -> CallError {
+	CallError::Custom(ErrorObject::owned(
+		RUNTIME_ERROR,
+		"Runtime trapped",
+		Some(format!("{:?}", err)),
+	))
 }
 
 #[cfg(test)]

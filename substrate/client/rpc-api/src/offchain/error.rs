@@ -19,6 +19,8 @@
 //! Offchain RPC errors.
 
 use jsonrpsee::types::error::{ErrorObject, ErrorObjectOwned};
+use jsonrpsee::core::Error as JsonRpseeError;
+use jsonrpsee::types::error::{CallError};
 
 /// Offchain RPC Result type.
 pub type Result<T> = std::result::Result<T, Error>;
@@ -45,6 +47,20 @@ impl From<Error> for ErrorObjectOwned {
 				"This storage kind is not available yet",
 				None::<()>,
 			),
+			Error::UnsafeRpcCalled(e) => e.into(),
+		}
+	}
+}
+
+impl From<Error> for JsonRpseeError {
+	fn from(e: Error) -> Self {
+		match e {
+			Error::UnavailableStorageKind => CallError::Custom(ErrorObject::owned(
+				BASE_ERROR + 1,
+				"This storage kind is not available yet",
+				None::<()>,
+			))
+			.into(),
 			Error::UnsafeRpcCalled(e) => e.into(),
 		}
 	}

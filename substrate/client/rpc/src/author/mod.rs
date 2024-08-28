@@ -98,7 +98,7 @@ where
 		};
 		let best_block_hash = self.client.info().best_hash;
 		self.pool
-			.submit_one(&generic::BlockId::hash(best_block_hash), TX_SOURCE, xt)
+			.submit_one(best_block_hash, TX_SOURCE, xt)
 			.await
 			.map_err(|e| {
 				e.into_pool_error()
@@ -193,7 +193,7 @@ where
 
 		let submit = self
 			.pool
-			.submit_and_watch(&generic::BlockId::hash(best_block_hash), TX_SOURCE, dxt)
+			.submit_and_watch(best_block_hash, TX_SOURCE, dxt)
 			.map_err(|e| {
 				e.into_pool_error()
 					.map(error::Error::from)

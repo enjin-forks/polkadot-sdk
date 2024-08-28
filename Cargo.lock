@@ -8290,6 +8290,7 @@ dependencies = [
 name = "mmr-gadget"
 version = "29.0.0"
 dependencies = [
+ "anyhow",
  "futures",
  "log",
  "parity-scale-codec",
@@ -8313,6 +8314,7 @@ dependencies = [
 name = "mmr-rpc"
 version = "28.0.0"
 dependencies = [
+ "anyhow",
  "jsonrpsee",
  "parity-scale-codec",
  "serde",

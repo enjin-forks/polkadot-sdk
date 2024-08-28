@@ -60,7 +60,7 @@ pub enum Error {
 	RuntimeError,
 }
 
-impl From<jsonrpsee::core::Error> for i32 {
+impl From<Error> for i32 {
 	fn from(e: Error) -> i32 {
 		match e {
 			Error::RuntimeError => 1,
@@ -103,11 +103,12 @@ where
 		let best = self.client.info().best_hash;
 
 		let nonce = api.account_nonce(best, account.clone()).map_err(|e| {
-			ErrorObject::owned(
-				Error::RuntimeError.into(),
-				"Unable to query nonce.",
-				Some(e.to_string()),
-			)
+			// ErrorObject::owned(
+			// 	Error::RuntimeError.into(),
+			// 	"Unable to query nonce.",
+			// 	Some(e.to_string()),
+			// )
+			jsonrpsee::core::Error::Custom(1.to_string())
 		})?;
 		Ok(adjust_nonce(&*self.pool, account, nonce))
 	}
@@ -125,28 +126,31 @@ where
 
 		let uxt: <Block as traits::Block>::Extrinsic =
 			Decode::decode(&mut &*extrinsic).map_err(|e| {
-				ErrorObject::owned(
-					Error::DecodeError.into(),
-					"Unable to dry run extrinsic",
-					Some(e.to_string()),
-				)
+				// ErrorObject::owned(
+				// 	Error::DecodeError.into(),
+				// 	"Unable to dry run extrinsic",
+				// 	Some(e.to_string()),
+				// )
+				jsonrpsee::core::Error::Custom(1.to_string())
 			})?;
 
 		let api_version = api
 			.api_version::<dyn BlockBuilder<Block>>(best_hash)
 			.map_err(|e| {
-				ErrorObject::owned(
-					Error::RuntimeError.into(),
-					"Unable to dry run extrinsic.",
-					Some(e.to_string()),
-				)
+				// ErrorObject::owned(
+				// 	Error::RuntimeError.into(),
+				// 	"Unable to dry run extrinsic.",
+				// 	Some(e.to_string()),
+				// )
+				jsonrpsee::core::Error::Custom(1.to_string())
 			})?
 			.ok_or_else(|| {
-				ErrorObject::owned(
-					Error::RuntimeError.into(),
-					"Unable to dry run extrinsic.",
-					Some(format!("Could not find `BlockBuilder` api for block `{:?}`.", best_hash)),
-				)
+				// ErrorObject::owned(
+				// 	Error::RuntimeError.into(),
+				// 	"Unable to dry run extrinsic.",
+				// 	Some(format!("Could not find `BlockBuilder` api for block `{:?}`.", best_hash)),
+				// )
+				jsonrpsee::core::Error::Custom(1.to_string())
 			})?;
 
 		let result = if api_version < 6 {
@@ -154,19 +158,21 @@ where
 			api.apply_extrinsic_before_version_6(best_hash, uxt)
 				.map(legacy::byte_sized_error::convert_to_latest)
 				.map_err(|e| {
-					ErrorObject::owned(
-						Error::RuntimeError.into(),
-						"Unable to dry run extrinsic.",
-						Some(e.to_string()),
-					)
+					// ErrorObject::owned(
+					// 	Error::RuntimeError.into(),
+					// 	"Unable to dry run extrinsic.",
+					// 	Some(e.to_string()),
+					// )
+					jsonrpsee::core::Error::Custom(1.to_string())
 				})?
 		} else {
 			api.apply_extrinsic(best_hash, uxt).map_err(|e| {
-				ErrorObject::owned(
-					Error::RuntimeError.into(),
-					"Unable to dry run extrinsic.",
-					Some(e.to_string()),
-				)
+				// ErrorObject::owned(
+				// 	Error::RuntimeError.into(),
+				// 	"Unable to dry run extrinsic.",
+				// 	Some(e.to_string()),
+				// )
+				jsonrpsee::core::Error::Custom(1.to_string())
 			})?
 		};
 

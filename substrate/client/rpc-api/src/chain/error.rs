@@ -18,7 +18,8 @@
 
 //! Error helpers for Chain RPC module.
 
-use jsonrpsee::types::{error::ErrorObject, ErrorObjectOwned};
+use jsonrpsee::types::{error::{CallError, ErrorObject}, ErrorObjectOwned};
+use jsonrpsee::core::Error as JsonRpseeError;
 /// Chain RPC Result type.
 pub type Result<T> = std::result::Result<T, Error>;
 
@@ -41,6 +42,16 @@ impl From<Error> for ErrorObjectOwned {
 		match e {
 			Error::Other(message) => ErrorObject::owned(BASE_ERROR + 1, message, None::<()>),
 			e => ErrorObject::owned(BASE_ERROR + 2, e.to_string(), None::<()>),
+		}
+	}
+}
+
+impl From<Error> for JsonRpseeError {
+	fn from(e: Error) -> Self {
+		match e {
+			Error::Other(message) =>
+				CallError::Custom(ErrorObject::owned(BASE_ERROR + 1, message, None::<()>)).into(),
+			e => e.into(),
 		}
 	}
 }

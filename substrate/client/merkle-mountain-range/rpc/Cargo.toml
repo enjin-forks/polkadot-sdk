@@ -23,6 +23,7 @@ sp-blockchain = { path = "../../../primitives/blockchain" }
 sp-core = { path = "../../../primitives/core" }
 sp-mmr-primitives = { path = "../../../primitives/merkle-mountain-range" }
 sp-runtime = { path = "../../../primitives/runtime" }
+anyhow = "1"
 
 [dev-dependencies]
 serde_json = { workspace = true, default-features = true }

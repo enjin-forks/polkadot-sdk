@@ -26,6 +26,7 @@ use sc_rpc_api::DenyUnsafe;
 use serde::{Deserialize, Serialize};
 use sp_runtime::traits::Block as BlockT;
 use std::sync::Arc;
+use jsonrpsee::core::Error;
 
 use sp_core::{
 	storage::{ChildInfo, ChildType, PrefixedStorageKey},
@@ -168,10 +169,11 @@ where
 	}
 }
 
-fn error_into_rpc_err(err: impl std::fmt::Display) -> ErrorObjectOwned {
-	ErrorObject::owned(
-		ErrorCode::InternalError.code(),
-		"Error while checking migration state",
-		Some(err.to_string()),
-	)
+fn error_into_rpc_err(err: impl std::fmt::Display) -> Error {
+	// ErrorObject::owned(
+	// 	ErrorCode::InternalError.code(),
+	// 	"Error while checking migration state",
+	// 	Some(err.to_string()),
+	// )
+	Error::Custom(1.to_string())
 }

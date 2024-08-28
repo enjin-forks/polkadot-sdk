@@ -23,6 +23,8 @@ use jsonrpsee::types::{
 	error::{ErrorCode, ErrorObject},
 	ErrorObjectOwned,
 };
+use jsonrpsee::core::Error as JsonRpseeError;
+use jsonrpsee::types::error::CallError;
 
 /// System RPC Result type.
 pub type Result<T> = std::result::Result<T, Error>;
@@ -62,5 +64,25 @@ impl From<Error> for ErrorObjectOwned {
 			Error::Internal(e) =>
 				ErrorObjectOwned::owned(ErrorCode::InternalError.code(), e, None::<()>),
 		}
+	}
+}
+
+
+impl From<Error> for JsonRpseeError {
+	fn from(e: Error) -> Self {
+		match e {
+			Error::NotHealthy(ref h) =>
+				CallError::Custom(ErrorObject::owned(NOT_HEALTHY_ERROR, e.to_string(), Some(h))),
+			Error::MalformattedPeerArg(e) => CallError::Custom(ErrorObject::owned(
+				MALFORMATTED_PEER_ARG_ERROR + 2,
+				e,
+				None::<()>,
+			)),
+			Error::UnsafeRpcCalled(e) => e.into(),
+			Error::Internal(e) =>
+				CallError::Custom(ErrorObject::owned(ErrorCode::InternalError.code(), e, None::<()>)
+			),
+		}
+		.into()
 	}
 }

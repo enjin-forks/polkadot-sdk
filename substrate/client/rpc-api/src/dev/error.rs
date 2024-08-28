@@ -19,6 +19,8 @@
 //! Error helpers for Dev RPC module.
 
 use jsonrpsee::types::error::{ErrorObject, ErrorObjectOwned};
+use jsonrpsee::core::Error as JsonRpseeError;
+use jsonrpsee::types::error::{CallError};
 
 /// Dev RPC Result type.
 pub type Result<T> = std::result::Result<T, Error>;
@@ -57,5 +59,24 @@ impl From<Error> for ErrorObjectOwned {
 			Error::ProofExtractionFailed => ErrorObject::owned(BASE_ERROR + 5, msg, None::<()>),
 			Error::UnsafeRpcCalled(e) => e.into(),
 		}
+	}
+}
+
+impl From<Error> for JsonRpseeError {
+	fn from(e: Error) -> Self {
+		let msg = e.to_string();
+
+		match e {
+			Error::BlockQueryError(_) =>
+				CallError::Custom(ErrorObject::owned(BASE_ERROR + 1, msg, None::<()>)),
+			Error::BlockExecutionFailed =>
+				CallError::Custom(ErrorObject::owned(BASE_ERROR + 3, msg, None::<()>)),
+			Error::WitnessCompactionFailed =>
+				CallError::Custom(ErrorObject::owned(BASE_ERROR + 4, msg, None::<()>)),
+			Error::ProofExtractionFailed =>
+				CallError::Custom(ErrorObject::owned(BASE_ERROR + 5, msg, None::<()>)),
+			Error::UnsafeRpcCalled(e) => e.into(),
+		}
+		.into()
 	}
 }

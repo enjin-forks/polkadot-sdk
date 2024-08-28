@@ -26,6 +26,7 @@ sp-core = { path = "../../primitives/core" }
 sp-mmr-primitives = { path = "../../primitives/merkle-mountain-range" }
 sc-offchain = { path = "../offchain" }
 sp-runtime = { path = "../../primitives/runtime" }
+anyhow = "1"
 
 [dev-dependencies]
 parking_lot = "0.12.1"
